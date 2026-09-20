@@ -4,45 +4,76 @@ import { TRANSLATIONS } from './data/translations';
 import { getLetterById } from './utils/storage';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './pages/LandingPage';
-import { CreatePage } from './pages/CreatePage';
 import { GalleryPage } from './pages/GalleryPage';
 import { LetterPage } from './pages/LetterPage';
+import { CreateLetterPage } from './pages/CreatePage';
+import { AdminPage } from './pages/AdminPage';
 
 export default function App() {
   const [lang, setLang] = useState('ru');
-  const [page, setPage] = useState('home'); // 'home' | 'create' | 'gallery' | 'letter'
+  const [page, setPage] = useState('home'); // 'home' | 'create' | 'gallery' | 'letter' | 'admin'
   const [currentLetter, setCurrentLetter] = useState(null);
 
   const t = TRANSLATIONS[lang];
 
   // Функция для чтения URL и открытия нужной страницы/письма
- const handleHashChange = async () => {
-  const hash = window.location.hash;
+  const handleHashChange = async () => {
+    const hash = window.location.hash;
 
-  if (hash.startsWith('#letter/')) {
-    const letterId = hash.replace('#letter/', '');
-    const foundLetter = await getLetterById(letterId);
+    if (hash.startsWith('#letter/')) {
+      const letterId = hash.replace('#letter/', '');
+      const foundLetter = await getLetterById(letterId);
 
-    setCurrentLetter(foundLetter);
-    setPage('letter');
-  }
-};
+      if (foundLetter) {
+        setCurrentLetter(foundLetter);
+        setPage('letter');
+      }
+    }
+  };
+
+  // Пасхалка для админа ("admin")
+  useEffect(() => {
+    let inputBuffer = '';
+
+    const handleKeyDown = (e) => {
+      inputBuffer += e.key.toLowerCase();
+      if (inputBuffer.length > 5) {
+        inputBuffer = inputBuffer.slice(-5);
+      }
+      if (inputBuffer === 'admin') {
+        setPage('admin');
+        inputBuffer = '';
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
-    // Проверяем hash при открытии сайта
     handleHashChange();
-
-    // Слушаем изменения URL (если человек переходит по ссылкам)
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const navigateTo = (newPage) => {
-    // Очищаем hash при обычном переходе по меню
-    if (newPage !== 'letter') {
+  // Универсальная навигация
+  const navigateTo = (targetPage, letterData = null) => {
+    if (targetPage.startsWith('letter/')) {
+      // Если передают путь формата 'letter/ID'
+      const id = targetPage.replace('letter/', '');
+      window.location.hash = `letter/${id}`;
+      if (letterData) {
+        setCurrentLetter(letterData);
+        setPage('letter');
+      } else {
+        handleHashChange();
+      }
+    } else {
+      // Для обычных страниц очищаем хэш
       window.location.hash = '';
+      setCurrentLetter(null);
+      setPage(targetPage);
     }
-    setPage(newPage);
   };
 
   return (
@@ -57,9 +88,10 @@ export default function App() {
 
       <main>
         {page === 'home' && <LandingPage navigateTo={navigateTo} t={t} />}
-        {page === 'create' && <CreatePage lang={lang} t={t} navigateTo={navigateTo} />}
-        {page === 'gallery' && <GalleryPage t={t} />}
+        {page === 'create' && <CreateLetterPage lang={lang} t={t} navigateTo={navigateTo} />}
+        {page === 'gallery' && <GalleryPage t={t} navigateTo={navigateTo} />}
         {page === 'letter' && <LetterPage letter={currentLetter} navigateTo={navigateTo} t={t} />}
+        {page === 'admin' && <AdminPage navigateTo={navigateTo} />}
       </main>
     </div>
   );

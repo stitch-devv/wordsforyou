@@ -1,6 +1,32 @@
 // src/utils/storage.js
 import { supabase } from './supabaseClient';
 
+// Добавьте или проверьте наличие этой функции в src/utils/storage.js
+export const createLetter = async (letterData) => {
+  const { data, error } = await supabase
+    .from('letters')
+    .insert([
+      {
+        id: letterData.id,
+        poem_id: letterData.poem_id,
+        poem_text: letterData.poem_text,
+        poem_author: letterData.poem_author,
+        recipient: letterData.recipient,
+        sender: letterData.sender,
+        note: letterData.note,
+        lang: letterData.lang
+      }
+    ])
+    .select();
+
+  if (error) {
+    console.error('Ошибка сохранения письма в Supabase:', error);
+    throw error;
+  }
+
+  return data[0];
+};
+
 // Получить все письма для Общей Галереи
 export const getStoredLetters = async () => {
   try {
@@ -70,27 +96,53 @@ export const saveLetter = async (letterData) => {
 
 // Получить конкретное письмо по ID (для перехода по ссылке)
 export const getLetterById = async (id) => {
-  try {
-    const { data, error } = await supabase
-      .from('letters')
-      .select('*')
-      .eq('id', id)
-      .single();
+  const { data, error } = await supabase
+    .from('letters')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-    if (error || !data) return null;
-
-    return {
-      id: data.id,
-      createdAt: data.created_at,
-      poemId: data.poem_id,
-      poemText: data.poem_text,
-      poemAuthor: data.poem_author,
-      recipient: data.recipient,
-      sender: data.sender,
-      note: data.note,
-      lang: data.lang
-    };
-  } catch (e) {
+  if (error) {
+    console.error('Ошибка получения письма:', error);
     return null;
   }
+  return data;
+};
+
+// ============Administration=========
+
+// Получить список активных объявлений
+export const getAnnouncements = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) return [];
+    return data;
+  } catch (e) {
+    return [];
+  }
+};
+
+// Создать новое объявление
+export const createAnnouncement = async (title, content) => {
+  const { data, error } = await supabase
+    .from('announcements')
+    .insert([{ title, content }])
+    .select();
+
+  if (error) throw error;
+  return data[0];
+};
+
+// Удалить объявление по ID
+export const deleteAnnouncement = async (id) => {
+  const { error } = await supabase
+    .from('announcements')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 };
