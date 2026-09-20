@@ -1,17 +1,22 @@
 // src/pages/GalleryPage.jsx
 import React, { useEffect, useState } from 'react';
-import { getStoredLetters } from '../utils/storage';
+import { getStoredLetters, getAnnouncements } from '../utils/storage';
 
 export const GalleryPage = ({ navigateTo }) => {
   const [letters, setLetters] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchGallery = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const data = await getStoredLetters();
-        setLetters(data || []);
+        const [lettersData, announcementsData] = await Promise.all([
+          getStoredLetters(),
+          getAnnouncements(),
+        ]);
+        setLetters(lettersData || []);
+        setAnnouncements(announcementsData || []);
       } catch (err) {
         console.error('Ошибка загрузки галереи:', err);
       } finally {
@@ -19,7 +24,7 @@ export const GalleryPage = ({ navigateTo }) => {
       }
     };
 
-    fetchGallery();
+    fetchData();
   }, []);
 
   if (isLoading) {
@@ -39,6 +44,23 @@ export const GalleryPage = ({ navigateTo }) => {
         Здесь собраны открытки, созданные нашими пользователями
       </p>
 
+      {/* Секция объявлений от админа */}
+      {announcements.length > 0 && (
+        <div style={{ marginBottom: '30px' }}>
+          {announcements.map((ann) => (
+            <div key={ann.id} style={styles.announcementCard}>
+              <span style={styles.badge}>📢 Объявление</span>
+              {ann.title && <h3 style={styles.annTitle}>{ann.title}</h3>}
+              <p style={styles.annContent}>{ann.content}</p>
+              <small style={styles.annDate}>
+                {new Date(ann.created_at).toLocaleDateString()}
+              </small>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Секция карточек-письма */}
       {letters.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
           Пока нет публичных посланий. Будьте первыми!
@@ -51,7 +73,6 @@ export const GalleryPage = ({ navigateTo }) => {
               style={styles.card}
               onClick={() => navigateTo && navigateTo(`letter/${item.id}`, item)}
             >
-              {/* Шапка карточки */}
               <div style={styles.cardHeader}>
                 <span style={styles.recipientTag}>
                   Для: {item.recipient || 'Кому-то важному'}
@@ -61,17 +82,14 @@ export const GalleryPage = ({ navigateTo }) => {
                 </span>
               </div>
 
-              {/* Текст послания */}
               <p style={styles.poemSnippet}>
-                "{item.poem_text}"
+                "{item.poemText || item.poem_text}"
               </p>
 
-              {/* Подпись автора песни/стиха */}
               <div style={styles.poemAuthor}>
-                — {item.poem_author || 'Автор не указан'}
+                — {item.poemAuthor || item.poem_author || 'Автор не указан'}
               </div>
 
-              {/* Футер карточки */}
               <div style={styles.cardFooter}>
                 <button style={styles.readBtn}>
                   Открыть открытку 💌
@@ -91,6 +109,37 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
     gap: '20px',
   },
+  announcementCard: {
+    backgroundColor: '#FFF8E7',
+    border: '2px solid #F0C987',
+    borderRadius: '16px',
+    padding: '20px',
+    marginBottom: '15px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+  },
+  badge: {
+    fontSize: '0.75rem',
+    fontWeight: 'bold',
+    color: '#D97706',
+    backgroundColor: '#FEF3C7',
+    padding: '4px 8px',
+    borderRadius: '6px',
+    textTransform: 'uppercase',
+  },
+  annTitle: {
+    margin: '10px 0 5px 0',
+    color: '#3A322C',
+    fontSize: '1.1rem',
+  },
+  annContent: {
+    margin: '5px 0',
+    color: '#554B43',
+    lineHeight: '1.5',
+  },
+  annDate: {
+    color: '#A09388',
+    fontSize: '0.8rem',
+  },
   card: {
     backgroundColor: '#FAF6EF',
     border: '2px solid #EAE3D9',
@@ -98,7 +147,7 @@ const styles = {
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between', // Исправлено: justifyContent вместо justify
+    justifyContent: 'space-between',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
