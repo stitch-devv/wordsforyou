@@ -1,6 +1,5 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
-import './styles/global.css';
 import { TRANSLATIONS } from './data/translations';
 import { getLetterById } from './utils/storage';
 import { Navbar } from './components/Navbar';
