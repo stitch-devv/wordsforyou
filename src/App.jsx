@@ -16,22 +16,17 @@ export default function App() {
   const t = TRANSLATIONS[lang];
 
   // Функция для чтения URL и открытия нужной страницы/письма
-  const handleHashChange = () => {
-    const hash = window.location.hash;
-    
-    if (hash.startsWith('#letter/')) {
-      const letterId = hash.replace('#letter/', '');
-      const foundLetter = getLetterById(letterId);
-      
-      if (foundLetter) {
-        setCurrentLetter(foundLetter);
-        setPage('letter');
-      } else {
-        setCurrentLetter(null);
-        setPage('letter');
-      }
-    }
-  };
+ const handleHashChange = async () => {
+  const hash = window.location.hash;
+
+  if (hash.startsWith('#letter/')) {
+    const letterId = hash.replace('#letter/', '');
+    const foundLetter = await getLetterById(letterId);
+
+    setCurrentLetter(foundLetter);
+    setPage('letter');
+  }
+};
 
   useEffect(() => {
     // Проверяем hash при открытии сайта

@@ -8,8 +8,12 @@ export const GalleryPage = ({ t }) => {
   const [letters, setLetters] = useState([]);
 
   useEffect(() => {
-    setLetters(getStoredLetters());
-  }, []);
+  const fetchLetters = async () => {
+    const data = await getStoredLetters();
+    setLetters(data);
+  };
+  fetchLetters();
+}, []);
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px' }}>

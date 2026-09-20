@@ -17,8 +17,9 @@ export const CreatePage = ({ lang, t, navigateTo }) => {
     ? POEMS 
     : POEMS.filter(p => p.category === selectedCategory);
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     setError('');
+    
 
     // Модерация
     const checkNote = validateContent(note);
@@ -39,8 +40,8 @@ export const CreatePage = ({ lang, t, navigateTo }) => {
       lang
     };
 
-    const saved = saveLetter(letterData);
-    setCreatedLetter(saved);
+  const saved = await saveLetter(letterData);
+  setCreatedLetter(saved);
   };
 
   const copyLink = () => {

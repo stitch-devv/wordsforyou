@@ -1,50 +1,96 @@
-// Работа с сохранением и неизменяемостью записей
+// src/utils/storage.js
+import { supabase } from './supabaseClient';
 
-const STORAGE_KEY = "words_for_you_letters_v1";
-
-export const getStoredLetters = () => {
+// Получить все письма для Общей Галереи
+export const getStoredLetters = async () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    const { data, error } = await supabase
+      .from('letters')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Ошибка получения писем:', error);
+      return [];
+    }
+
+    return data.map(item => ({
+      id: item.id,
+      createdAt: item.created_at,
+      poemId: item.poem_id,
+      poemText: item.poem_text,
+      poemAuthor: item.poem_author,
+      recipient: item.recipient,
+      sender: item.sender,
+      note: item.note,
+      lang: item.lang
+    }));
   } catch (e) {
-    console.error("Failed to fetch letters", e);
+    console.error('Ошибка соединения с Supabase:', e);
     return [];
   }
 };
 
-export const saveLetter = (letterData) => {
-  const currentLetters = getStoredLetters();
-  
+// Сохранить новое письмо в общую базу
+export const saveLetter = async (letterData) => {
   const newLetter = {
     id: 'letter_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-    createdAt: new Date().toISOString(),
-    isImmutable: true,
-    ...letterData
+    poem_id: letterData.poemId,
+    poem_text: letterData.poemText,
+    poem_author: letterData.poemAuthor,
+    recipient: letterData.recipient,
+    sender: letterData.sender,
+    note: letterData.note,
+    lang: letterData.lang
   };
 
-  const updated = [newLetter, ...currentLetters];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return newLetter;
+  const { data, error } = await supabase
+    .from('letters')
+    .insert([newLetter])
+    .select();
+
+  if (error) {
+    console.error('Ошибка сохранения:', error);
+    throw error;
+  }
+
+  const saved = data[0];
+  return {
+    id: saved.id,
+    createdAt: saved.created_at,
+    poemId: saved.poem_id,
+    poemText: saved.poem_text,
+    poemAuthor: saved.poem_author,
+    recipient: saved.recipient,
+    sender: saved.sender,
+    note: saved.note,
+    lang: saved.lang
+  };
 };
 
-export const getLetterById = (id) => {
-  const letters = getStoredLetters();
-  return letters.find(item => item.id === id);
-};
+// Получить конкретное письмо по ID (для перехода по ссылке)
+export const getLetterById = async (id) => {
+  try {
+    const { data, error } = await supabase
+      .from('letters')
+      .select('*')
+      .eq('id', id)
+      .single();
 
+    if (error || !data) return null;
 
-
-// src/utils/storage.js
-
-// Удаление конкретного письма по его ID
-export const deleteLetterById = (id) => {
-  const letters = getStoredLetters();
-  const updated = letters.filter(letter => letter.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
-};
-
-// Полная очистка всех писем (сброс базы)
-export const clearAllLetters = () => {
-  localStorage.removeItem(STORAGE_KEY);
+    return {
+      id: data.id,
+      createdAt: data.created_at,
+      poemId: data.poem_id,
+      poemText: data.poem_text,
+      poemAuthor: data.poem_author,
+      recipient: data.recipient,
+      sender: data.sender,
+      note: data.note,
+      lang: data.lang
+    };
+  } catch (e) {
+    return null;
+  }
 };
