@@ -1,0 +1,113 @@
+/* src/styles/CreatePage.css */
+.create-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  color: #554A40;
+  font-weight: 600;
+}
+
+.form-input, 
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #DCD0C0;
+  font-size: 0.95rem;
+  background-color: #FFFFFF;
+}
+
+.form-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.categories-flex {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cat-btn {
+  background-color: #EAE3D9;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.cat-btn.active {
+  background-color: #A0522D;
+  color: #FFFFFF;
+}
+
+.poem-picker {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #EAE3D9;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+}
+
+.poem-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #FAF6EF;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+}
+
+.poem-item:hover {
+  background-color: #FAF6EF;
+}
+
+.poem-item.active {
+  background-color: #FAF6EF;
+  border-left: 4px solid #A0522D;
+  font-weight: bold;
+}
+
+.create-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: sticky;
+  top: 90px;
+}
+
+.preview-title {
+  color: #8C7A6B;
+  margin-bottom: 16px;
+}
+
+/* Мобильная адаптивность: превращаем двухколоночный grid в одну колонку */
+@media (max-width: 900px) {
+  .create-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .create-preview {
+    position: static;
+    order: -1; /* Показываем карточку вверху или следом */
+  }
+}
