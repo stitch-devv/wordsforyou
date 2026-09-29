@@ -38,7 +38,7 @@ export const GalleryPage = ({ navigateTo }) => {
   return (
     <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
       <h2 style={{ textAlign: 'center', color: '#3A322C', marginBottom: '10px' }}>
-        Галерея посланий ✨
+        От администратора
       </h2>
       <p style={{ textAlign: 'center', color: '#7A6E65', marginBottom: '30px' }}>
         Здесь собраны открытки, созданные нашими пользователями
