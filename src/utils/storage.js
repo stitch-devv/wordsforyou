@@ -35,14 +35,10 @@ export const getStoredLetters = async () => {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Ошибка получения писем:', error);
-      return [];
-    }
+    if (error) return [];
 
     return data.map(item => ({
-      id: item.id,
-      createdAt: item.created_at,
+      id: item.id, // <-- Убедитесь, что здесь берется item.id из базы
       poemId: item.poem_id,
       poemText: item.poem_text,
       poemAuthor: item.poem_author,
@@ -52,7 +48,6 @@ export const getStoredLetters = async () => {
       lang: item.lang
     }));
   } catch (e) {
-    console.error('Ошибка соединения с Supabase:', e);
     return [];
   }
 };
@@ -145,4 +140,37 @@ export const deleteAnnouncement = async (id) => {
     .eq('id', id);
 
   if (error) throw error;
+};
+
+
+// Удалить письмо из общей галереи по ID
+export const deleteLetter = async (id) => {
+  console.log('Отправка запроса на удаление в Supabase для ID:', id);
+
+  const { data, error } = await supabase
+    .from('letters')
+    .delete()
+    .eq('id', id)
+    .select(); // Возвращает удаленную запись для проверки
+
+  if (error) {
+    console.error('Ошибка Supabase при удалении:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+// Функция для полного удаления всех писем
+export const deleteAllLetters = async () => {
+  const { data, error } = await supabase
+    .from('letters')
+    .delete()
+    .neq('id', '0'); // Удалит все строки, где id не равен '0'
+
+  if (error) {
+    console.error('Ошибка при очистке галереи:', error);
+    throw error;
+  }
+  return data;
 };
